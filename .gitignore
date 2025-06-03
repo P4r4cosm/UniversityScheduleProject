@@ -1,0 +1,83 @@
+*.pdf
+*.docx
+
+data/
+vs/
+.idea/
+
+# ---> VisualStudio
+## Build Folders
+bin/
+obj/
+publish/
+
+## Visual Studio user-specific files
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# ---> Rider specific
+.idea/
+*.iml
+*.iws
+*.jar
+*.class
+*.lock
+
+# ---> Resharper (if used)
+_ReSharper*/
+*.ReSharper
+*.DotSettings.user
+
+# ---> .NET
+## NuGet packages
+packages/
+*.nupkg
+nuget.exe
+nuget.Config
+project.assets.json
+project.lock.json
+
+## Publish & build output
+PublishOutput/
+
+## .NET Core publish
+**/Properties/PublishProfiles/*.pubxml
+**/Properties/PublishProfiles/*.xml
+
+# ---> Test results
+TestResults/
+*.TestResults.xml
+*.trx
+
+# ---> OS specific
+## Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+## macOS
+.DS_Store
+
+## Linux
+*~
+
+# ---> Logs and temporary files
+*.log
+*.tmp
+*.bak
+*.cache
+*.crdownload
+
+# ---> Unity (uncomment if needed)
+# Temp/
+# Library/
+# UserSettings/
+# Assets/AssetStoreTools*
+
+# ---> Version control
+.git
+.svn
+
