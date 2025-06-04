@@ -16,7 +16,7 @@
   
 ## Архитектура
 ### C4 Context
-![image](https://github.com/user-attachments/assets/82995a20-28db-4280-afed-e8c6ef4c1075)
+![image](https://github.com/user-attachments/assets/6f06caae-4dbb-45db-90f7-4a5ab323385f)
 ### C4 Container
 ![image](https://github.com/user-attachments/assets/8b792b52-1417-4983-bebd-7ed9982284ae)
 ### C4 Component
