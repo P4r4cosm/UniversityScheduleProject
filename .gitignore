@@ -1,7 +1,9 @@
 *.pdf
 *.docx
 
+# Игнорируем папку data/ logs
 data/
+logs/
 vs/
 .idea/
 
