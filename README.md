@@ -44,6 +44,25 @@
 ## Запуск
 Для запуска проекта необходимо скачать или клонировать его и выполнить в папке с проектом:
  ```docker compose up -d --build```
+
+
+## API Endpoints
+
+Ниже представлена таблица с описанием основных API эндпоинтов, доступных через API Gateway, а также эндпоинтов, обрабатываемых непосредственно самим шлюзом.
+
+| Метод | Путь        | Шлюз/Сервис                      | Описание                                                                                                     | Входные данные (тип)                                                                                                                               | Политика Авторизации (на шлюзе) |
+| :---- | :---------- | :------------------------------- | :----------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------- |
+| POST  | `/register` | `University_Schedule_Gateway`    | Регистрирует нового пользователя.                                                                              | Тело: `Name` (string), `Password` (string) (`RegisterUserRequest`)                                                                              | -                             |
+| POST  | `/login`    | `University_Schedule_Gateway`    | Аутентифицирует пользователя, возвращает JWT токен.                                                          | Тело: `Name` (string), `Password` (string) (`LoginUserRequest`)                                                                                 | -                             |
+| POST  | `/generate` | `university-schedule-generator`  | Генерирует и сохраняет данные в системе.                                                                     | Тело: `SpecialtiesCount` (int), `UniversityCount` (int), `InstitutionCount` (int), `DepartmentCount` (int), `GroupCount` (int), `StudentCount` (int), `CourseCount` (int) (`GenerateRequest`) | `AuthenticatedUserPolicy`     |
+| GET   | `/lab1`     | `university-schedule-lab1`       | Поиск студентов.                                                                                             | Query: `SearchText` (string?), `StartDate` (DateTime?), `EndDate` (DateTime?) (`FindBadStudentsRequest`)                                       | `AuthenticatedUserPolicy`     |
+| GET   | `/lab2`     | `university-schedule-lab2`       | Поиск аудиторий или требований к ним (на основе `FindAudienceService`).                                      | Query: `CourseName` (string), `Year` (int) (`FindAudienceRequest`)                                                                                 | `AuthenticatedUserPolicy`     |
+| GET   | `/lab3`     | `university-schedule-lab3`       | Получение отчета по группе.                                                                                  | Query: `GroupName` (string) (`GetGroupReportRequest`)                                                                                            | `AuthenticatedUserPolicy`     |
+
+**Примечания:**
+
+*   Эндпоинты `/generate`, `/lab1`, `/lab2`, `/lab3` требуют аутентификации пользователя, которая настроена на уровне API Gateway (`AuthenticatedUserPolicy`).
+*   Детальное описание моделей запросов (`RegisterUserRequest`, `LoginUserRequest`, `GenerateRequest`, `FindBadStudentsRequest`, `FindAudienceRequest`, `GetGroupReportRequest`) можно найти в соответствующих `.Contracts` проектах каждого сервиса.
  
 
 
