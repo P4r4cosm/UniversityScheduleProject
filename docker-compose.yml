@@ -1,58 +1,58 @@
 name: Schedule
 services:
-  # redis:
-  #   build: ./redis
-  #   container_name: redis
-  #   restart: unless-stopped
-  #   ports:
-  #     - "6379:6379"
-  #   volumes:
-  #     - ./data/redis:/data
-  #     - ./logs/redis:/var/log/redis
-  #   command: redis-server --appendonly yes
+  redis:
+    build: ./redis
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/data
+      - ./logs/redis:/var/log/redis
+    command: redis-server --appendonly yes
 
-  # mongodb:
-  #   build: ./mongodb
-  #   container_name: mongodb
-  #   restart: unless-stopped
-  #   ports:
-  #     - "27017:27017"
-  #   volumes:
-  #     - ./data/mongodb:/data/db
-  #     - ./logs/mongodb:/var/log/mongodb
-  #   environment:
-  #     MONGO_INITDB_ROOT_USERNAME: root
-  #     MONGO_INITDB_ROOT_PASSWORD: root
+  mongodb:
+    build: ./mongodb
+    container_name: mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/mongodb:/data/db
+      - ./logs/mongodb:/var/log/mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
 
-  # neo4j:
-  #   build: ./neo4j
-  #   container_name: neo4j
-  #   restart: unless-stopped
-  #   ports:
-  #     - "7474:7474"
-  #     - "7687:7687"
-  #   environment:
-  #     - NEO4J_AUTH=neo4j/61323F1nigan
-  #   volumes:
-  #     - ./data/neo4j:/data
-  #     - ./logs/neo4j:/logs
+  neo4j:
+    build: ./neo4j
+    container_name: neo4j
+    restart: unless-stopped
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/61323F1nigan
+    volumes:
+      - ./data/neo4j:/data
+      - ./logs/neo4j:/logs
 
-  # elasticsearch:
-  #   image: docker.elastic.co/elasticsearch/elasticsearch-wolfi:8.17.3
-  #   container_name: elasticsearch
-  #   restart: unless-stopped
-  #   environment:
-  #     - node.name=elasticsearch
-  #     - cluster.name=es-docker-cluster
-  #     - discovery.type=single-node
-  #     - xpack.security.enrollment.enabled=false
-  #     - xpack.security.enabled=false
-  #   ports:
-  #     - "9200:9200"
-  #     - "9300:9300"
-  #   volumes:
-  #     - ./data/elasticsearch:/usr/share/elasticsearch/data
-  #     - ./logs/elasticsearch:/usr/share/elasticsearch/logs
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-wolfi:8.17.3
+    container_name: elasticsearch
+    restart: unless-stopped
+    environment:
+      - node.name=elasticsearch
+      - cluster.name=es-docker-cluster
+      - discovery.type=single-node
+      - xpack.security.enrollment.enabled=false
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - ./data/elasticsearch:/usr/share/elasticsearch/data
+      - ./logs/elasticsearch:/usr/share/elasticsearch/logs
 
   postgres:
     image: debezium/postgres:16-alpine
@@ -69,170 +69,170 @@ services:
       - ./logs/postgres:/var/log/postgresql
       - ./postgres-initdb:/docker-entrypoint-initdb.d
 
-  # kibana:
-  #   image: docker.elastic.co/kibana/kibana:8.17.3
-  #   container_name: kibana
-  #   restart: unless-stopped
-  #   ports:
-  #     - "5601:5601"
-  #   depends_on:
-  #     - elasticsearch
-  #   environment:
-  #     - node.name=kibana
-  #     - cluster=es-docker-cluster
-  #     - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.17.3
+    container_name: kibana
+    restart: unless-stopped
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    environment:
+      - node.name=kibana
+      - cluster=es-docker-cluster
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
 
-  # university-schedule-gateway:
-  #   build:
-  #     context: . # Предполагается, что docker-compose.yml лежит в корне решения,
-  #                # а Dockerfile для gateway в папке 'University Schedule Gateway'
-  #     dockerfile: University Schedule Gateway\Dockerfile
-  #   container_name: university_schedule_gateway_app
-  #   restart: unless-stopped
-  #   ports:
-  #     - "8080:8080" # Проверьте, какие порты использует ваше приложение (8080/8081 или 80/443)
-  #     - "8081:8081" # Если используете HTTPS
-  #   environment:
-  #     - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=mydb;Username=admin;Password=admin
-  #     - ASPNETCORE_ENVIRONMENT=Development
-  #     # Если ваше приложение слушает на 80/443 внутри контейнера, измените соответственно
-  #     - ASPNETCORE_URLS=http://+:8080;
-  #   depends_on:
-  #     - postgres # Зависит от postgres
+  university-schedule-gateway:
+    build:
+      context: . # Предполагается, что docker-compose.yml лежит в корне решения,
+                 # а Dockerfile для gateway в папке 'University Schedule Gateway'
+      dockerfile: University Schedule Gateway\Dockerfile
+    container_name: university_schedule_gateway_app
+    restart: unless-stopped
+    ports:
+      - "8080:8080" # Проверьте, какие порты использует ваше приложение (8080/8081 или 80/443)
+      - "8081:8081" # Если используете HTTPS
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=mydb;Username=admin;Password=admin
+      - ASPNETCORE_ENVIRONMENT=Development
+      # Если ваше приложение слушает на 80/443 внутри контейнера, измените соответственно
+      - ASPNETCORE_URLS=http://+:8080;
+    depends_on:
+      - postgres # Зависит от postgres
 
 
 
-  # university-schedule-generator:
-  #   build:
-  #     context: .
-  #     dockerfile: University Schedule Generator\Dockerfile # Путь к Dockerfile для Lab1
-  #   container_name: university_schedule_generator_app
-  #   restart: unless-stopped
-  #   ports:
-  #     - "8100:8080" # Хост-порт 8100 -> контейнер-порт 8080 (HTTP)
-  #   environment:
-  #      # PostgreSQL
-  #     # PostgreSQL
-  #     - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=mydb;Username=admin;Password=admin
-  #     # Redis
-  #     - RedisOptions__Configuration=redis:6379
-  #     - RedisOptions__InstanceName=docker_lab1_redis_instance # Можно задать уникальное имя
-  #     # Elasticsearch
-  #     - ElasticsearchOptions__Uri=http://elasticsearch:9200
-  #     # MongoDB
-  #     - MongoDbSettings__ConnectionString=mongodb://root:root@mongodb:27017/?authSource=admin
-  #     - MongoDbSettings__Database=lab1_mongo_db # Может быть своя БД для каждой лабы
-  #     # Neo4j
-  #     - Neo4jOptions__Uri=bolt://neo4j:7687
-  #     - Neo4jOptions__Username=neo4j
-  #     - Neo4jOptions__Password=61323F1nigan
-  #     - ASPNETCORE_ENVIRONMENT=Development
-  #     - ASPNETCORE_URLS=http://+:8080 # Lab1 слушает HTTP на 8080 внутри контейнера
-  #   depends_on:
-  #     - postgres
-  #     # - mongodb
-  #     # - redis
-  #     # - neo4j
-  #     # - elasticsearch
+  university-schedule-generator:
+    build:
+      context: .
+      dockerfile: University Schedule Generator\Dockerfile # Путь к Dockerfile для Lab1
+    container_name: university_schedule_generator_app
+    restart: unless-stopped
+    ports:
+      - "8100:8080" # Хост-порт 8100 -> контейнер-порт 8080 (HTTP)
+    environment:
+       # PostgreSQL
+      # PostgreSQL
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=mydb;Username=admin;Password=admin
+      # Redis
+      - RedisOptions__Configuration=redis:6379
+      - RedisOptions__InstanceName=docker_lab1_redis_instance # Можно задать уникальное имя
+      # Elasticsearch
+      - ElasticsearchOptions__Uri=http://elasticsearch:9200
+      # MongoDB
+      - MongoDbSettings__ConnectionString=mongodb://root:root@mongodb:27017/?authSource=admin
+      - MongoDbSettings__Database=lab1_mongo_db # Может быть своя БД для каждой лабы
+      # Neo4j
+      - Neo4jOptions__Uri=bolt://neo4j:7687
+      - Neo4jOptions__Username=neo4j
+      - Neo4jOptions__Password=61323F1nigan
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080 # Lab1 слушает HTTP на 8080 внутри контейнера
+    depends_on:
+      - postgres
+      # - mongodb
+      # - redis
+      # - neo4j
+      # - elasticsearch
 
-  # # --- Лабораторная работа 1 ---
-  # university-schedule-lab1:
-  #   build:
-  #     context: .
-  #     dockerfile: University Schedule Lab1\Dockerfile # Путь к Dockerfile для Lab1
-  #   container_name: university_schedule_lab1_app
-  #   restart: unless-stopped
-  #   ports:
-  #     - "8070:8080" # Хост-порт 8070 -> контейнер-порт 8080 (HTTP)
-  #   environment:
-  #      # PostgreSQL
-  #     - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=mydb;Username=admin;Password=admin
-  #     # Redis
-  #     - RedisOptions__Configuration=redis:6379
-  #     - RedisOptions__InstanceName=docker_lab1_redis_instance # Можно задать уникальное имя
-  #     # Elasticsearch
-  #     - ElasticsearchOptions__Uri=http://elasticsearch:9200
-  #     # MongoDB
-  #     - MongoDbSettings__ConnectionString=mongodb://root:root@mongodb:27017/?authSource=admin
-  #     - MongoDbSettings__Database=lab1_mongo_db # Может быть своя БД для каждой лабы
-  #     # Neo4j
-  #     - Neo4jOptions__Uri=bolt://neo4j:7687
-  #     - Neo4jOptions__Username=neo4j
-  #     - Neo4jOptions__Password=61323F1nigan
-  #     - ASPNETCORE_ENVIRONMENT=Development
-  #     - ASPNETCORE_URLS=http://+:8080 # Lab1 слушает HTTP на 8080 внутри контейнера
-  #   depends_on:
-  #     - postgres
-  #     - mongodb
-  #     - redis
-  #     - neo4j
-  #     - elasticsearch
+  # --- Лабораторная работа 1 ---
+  university-schedule-lab1:
+    build:
+      context: .
+      dockerfile: University Schedule Lab1\Dockerfile # Путь к Dockerfile для Lab1
+    container_name: university_schedule_lab1_app
+    restart: unless-stopped
+    ports:
+      - "8070:8080" # Хост-порт 8070 -> контейнер-порт 8080 (HTTP)
+    environment:
+       # PostgreSQL
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=mydb;Username=admin;Password=admin
+      # Redis
+      - RedisOptions__Configuration=redis:6379
+      - RedisOptions__InstanceName=docker_lab1_redis_instance # Можно задать уникальное имя
+      # Elasticsearch
+      - ElasticsearchOptions__Uri=http://elasticsearch:9200
+      # MongoDB
+      - MongoDbSettings__ConnectionString=mongodb://root:root@mongodb:27017/?authSource=admin
+      - MongoDbSettings__Database=lab1_mongo_db # Может быть своя БД для каждой лабы
+      # Neo4j
+      - Neo4jOptions__Uri=bolt://neo4j:7687
+      - Neo4jOptions__Username=neo4j
+      - Neo4jOptions__Password=61323F1nigan
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080 # Lab1 слушает HTTP на 8080 внутри контейнера
+    depends_on:
+      - postgres
+      - mongodb
+      - redis
+      - neo4j
+      - elasticsearch
 
-  # # --- Лабораторная работа 2 ---
-  # university-schedule-lab2:
-  #   build:
-  #     context: .
-  #     dockerfile: University Schedule Lab2\Dockerfile # Путь к Dockerfile для Lab2
-  #   container_name: university_schedule_lab2_app
-  #   restart: unless-stopped
-  #   ports:
-  #     - "8060:8080" # Хост-порт 8060 -> контейнер-порт 8080 (HTTP)
-  #   environment:
-  #      # PostgreSQL
-  #     - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=mydb;Username=admin;Password=admin
-  #     # Redis
-  #     - RedisOptions__Configuration=redis:6379
-  #     - RedisOptions__InstanceName=docker_lab2_redis_instance # Можно задать уникальное имя
-  #     # Elasticsearch
-  #     - ElasticsearchOptions__Uri=http://elasticsearch:9200
-  #     # MongoDB
-  #     - MongoDbSettings__ConnectionString=mongodb://root:root@mongodb:27017/?authSource=admin
-  #     - MongoDbSettings__Database=lab1_mongo_db # Может быть своя БД для каждой лабы
-  #     # Neo4j
-  #     - Neo4jOptions__Uri=bolt://neo4j:7687
-  #     - Neo4jOptions__Username=neo4j
-  #     - Neo4jOptions__Password=61323F1nigan
-  #     - ASPNETCORE_ENVIRONMENT=Development
-  #     - ASPNETCORE_URLS=http://+:8080 # Lab2 слушает HTTP на 8080 внутри контейнера
-  #   depends_on:
-  #     - postgres
-  #     - mongodb
-  #     - redis
-  #     - neo4j
-  #     - elasticsearch
+  # --- Лабораторная работа 2 ---
+  university-schedule-lab2:
+    build:
+      context: .
+      dockerfile: University Schedule Lab2\Dockerfile # Путь к Dockerfile для Lab2
+    container_name: university_schedule_lab2_app
+    restart: unless-stopped
+    ports:
+      - "8060:8080" # Хост-порт 8060 -> контейнер-порт 8080 (HTTP)
+    environment:
+       # PostgreSQL
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=mydb;Username=admin;Password=admin
+      # Redis
+      - RedisOptions__Configuration=redis:6379
+      - RedisOptions__InstanceName=docker_lab2_redis_instance # Можно задать уникальное имя
+      # Elasticsearch
+      - ElasticsearchOptions__Uri=http://elasticsearch:9200
+      # MongoDB
+      - MongoDbSettings__ConnectionString=mongodb://root:root@mongodb:27017/?authSource=admin
+      - MongoDbSettings__Database=lab1_mongo_db # Может быть своя БД для каждой лабы
+      # Neo4j
+      - Neo4jOptions__Uri=bolt://neo4j:7687
+      - Neo4jOptions__Username=neo4j
+      - Neo4jOptions__Password=61323F1nigan
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080 # Lab2 слушает HTTP на 8080 внутри контейнера
+    depends_on:
+      - postgres
+      - mongodb
+      - redis
+      - neo4j
+      - elasticsearch
 
-  # # --- Лабораторная работа 3 ---
-  # university-schedule-lab3:
-  #   build:
-  #     context: .
-  #     dockerfile: University Schedule Lab3\Dockerfile # Путь к Dockerfile для Lab3
-  #   container_name: university_schedule_lab3_app
-  #   restart: unless-stopped
-  #   ports:
-  #     - "8050:8080" # Хост-порт 8050 -> контейнер-порт 8080 (HTTP)
-  #   environment:
-  #    # PostgreSQL
-  #     - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=mydb;Username=admin;Password=admin
-  #     # Redis
-  #     - RedisOptions__Configuration=redis:6379
-  #     - RedisOptions__InstanceName=docker_lab3_redis_instance # Можно задать уникальное имя
-  #     # Elasticsearch
-  #     - ElasticsearchOptions__Uri=http://elasticsearch:9200
-  #     # MongoDB
-  #     - MongoDbSettings__ConnectionString=mongodb://root:root@mongodb:27017/?authSource=admin
-  #     - MongoDbSettings__Database=lab1_mongo_db # Может быть своя БД для каждой лабы
-  #     # Neo4j
-  #     - Neo4jOptions__Uri=bolt://neo4j:7687
-  #     - Neo4jOptions__Username=neo4j
-  #     - Neo4jOptions__Password=61323F1nigan
-  #     - ASPNETCORE_ENVIRONMENT=Development
-  #     - ASPNETCORE_URLS=http://+:8080 # Lab3 слушает HTTP на 8080 внутри контейнера
-  #   depends_on:
-  #     - postgres
-  #     - mongodb
-  #     - redis
-  #     - neo4j
-  #     - elasticsearch
+  # --- Лабораторная работа 3 ---
+  university-schedule-lab3:
+    build:
+      context: .
+      dockerfile: University Schedule Lab3\Dockerfile # Путь к Dockerfile для Lab3
+    container_name: university_schedule_lab3_app
+    restart: unless-stopped
+    ports:
+      - "8050:8080" # Хост-порт 8050 -> контейнер-порт 8080 (HTTP)
+    environment:
+     # PostgreSQL
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=mydb;Username=admin;Password=admin
+      # Redis
+      - RedisOptions__Configuration=redis:6379
+      - RedisOptions__InstanceName=docker_lab3_redis_instance # Можно задать уникальное имя
+      # Elasticsearch
+      - ElasticsearchOptions__Uri=http://elasticsearch:9200
+      # MongoDB
+      - MongoDbSettings__ConnectionString=mongodb://root:root@mongodb:27017/?authSource=admin
+      - MongoDbSettings__Database=lab1_mongo_db # Может быть своя БД для каждой лабы
+      # Neo4j
+      - Neo4jOptions__Uri=bolt://neo4j:7687
+      - Neo4jOptions__Username=neo4j
+      - Neo4jOptions__Password=61323F1nigan
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080 # Lab3 слушает HTTP на 8080 внутри контейнера
+    depends_on:
+      - postgres
+      - mongodb
+      - redis
+      - neo4j
+      - elasticsearch
 
 
   zookeeper:
