@@ -1,4 +1,5 @@
 using Neo4j.Driver;
+using Microsoft.AspNetCore.Mvc;
 
 namespace University_Schedule_Generator.Endpoints;
 
@@ -7,7 +8,7 @@ public static class Neo4jEndpoints
     public static RouteGroupBuilder MapNeo4jEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(""); // Опциональный под-префикс
-        app.MapGet("/neo4j_test", async (IDriver driver) =>
+        app.MapGet("/neo4j_test", async ([FromServices] IDriver driver) =>
             {
                 await using var session = driver.AsyncSession();
                 try 
