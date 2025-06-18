@@ -1,6 +1,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Driver;
+using Microsoft.AspNetCore.Mvc;
 
 namespace University_Schedule_Generator.Endpoints;
 
@@ -9,7 +10,7 @@ public static class MongoEndpoints
     public static RouteGroupBuilder MapMongoEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup(""); // Опциональный под-префикс
-        group.MapGet("/mongo_test", async (IMongoDatabase db) =>
+        group.MapGet("/mongo_test", async ([FromServices] IMongoDatabase db) =>
         {
             try
             {
