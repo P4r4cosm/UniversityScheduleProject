@@ -3,7 +3,7 @@
     "config": {
         "connector.class": "io.confluent.connect.elasticsearch.ElasticsearchSinkConnector",
         "tasks.max": "1",
-        "topics": "postgres.public.students,postgres.public.courses,postgres.public.groups,postgres.public.universities,postgres.public.departments",
+        "topics": "postgres.public.Lectures",
         "connection.url": "http://elasticsearch:9200",
         "type.name": "_doc",
         "key.ignore": "true",
@@ -11,9 +11,8 @@
         "behavior.on.null.values": "delete",
         "behavior.on.malformed.documents": "warn",
         "write.method": "upsert",
-        "transforms": "route",
-        "transforms.route.type": "org.apache.kafka.connect.transforms.RegexRouter",
-        "transforms.route.regex": "([^.]+)\\.([^.]+)\\.([^.]+)",
-        "transforms.route.replacement": "$3"
+        "transforms": "extract",
+        "transforms.extract.type": "org.apache.kafka.connect.transforms.ReplaceField$Value",
+        "transforms.extract.include": "Id,Name,FullText"
     }
-} 
+}
