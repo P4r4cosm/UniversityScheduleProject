@@ -66,6 +66,7 @@ function Register-Connector {
 Register-Connector -ConnectorName "postgres-source" -ConfigFile ".\config\kafka-connect\postgres-source.json"
 Register-Connector -ConnectorName "elasticsearch-sink" -ConfigFile ".\config\kafka-connect\elasticsearch-sink.json"
 Register-Connector -ConnectorName "redis-sink" -ConfigFile ".\config\kafka-connect\redis-sink.json"
+Register-Connector -ConnectorName "neo4j-sink" -ConfigFile ".\config\kafka-connect\neo4j-sink.json"
 
 # Получаем список активных коннекторов
 Write-Host "Listing active connectors:" -ForegroundColor Cyan
