@@ -13,6 +13,60 @@
 - **Schema Registry**: хранилище схем для сериализации/десериализации сообщений Kafka
 - **Kafka Connect**: фреймворк для интеграции Kafka с внешними системами
 - **Redis**: хранилище ключ-значение для кэширования данных
+- **University Schedule Generator**: сервис для генерации тестовых данных
+
+## Создание и наполнение таблиц
+
+В проекте используется два подхода к созданию и наполнению таблиц:
+
+### 1. Автоматическая генерация данных
+
+Для автоматической генерации данных используется сервис University Schedule Generator, который создает таблицы и наполняет их тестовыми данными:
+
+1. Создайте файл с параметрами для генерации данных:
+
+```json
+{
+  "SpecialtiesCount": 3,
+  "UniversityCount": 1,
+  "InstitutionCount": 2,
+  "DepartmentCount": 3,
+  "GroupCount": 2,
+  "StudentCount": 10,
+  "CourseCount": 5
+}
+```
+
+2. Отправьте запрос к сервису генерации данных:
+
+```bash
+curl -X POST "http://localhost:8100/generate" -H "Content-Type: application/json" -d @generate-request.json
+```
+
+Это создаст необходимые таблицы в PostgreSQL и наполнит их тестовыми данными. В результате будут созданы следующие таблицы:
+- students
+- courses
+- groups
+- universities
+- departments
+- и другие связанные таблицы
+
+### 2. Ручное создание и изменение данных
+
+Вы также можете вручную создавать и изменять данные в PostgreSQL:
+
+```bash
+# Вставка новой записи
+docker exec -it postgres psql -U admin -d mydb -c "INSERT INTO students (fullname, group_id) VALUES ('Новый Студент', 3);"
+
+# Обновление записи
+docker exec -it postgres psql -U admin -d mydb -c "UPDATE students SET fullname = 'Обновленный Студент' WHERE id = 11;"
+
+# Удаление записи
+docker exec -it postgres psql -U admin -d mydb -c "DELETE FROM students WHERE id = 11;"
+```
+
+Все изменения, выполненные как через генератор, так и вручную, будут отслеживаться Debezium и передаваться в Redis через Kafka.
 
 ## Автоматическая настройка коннекторов
 
