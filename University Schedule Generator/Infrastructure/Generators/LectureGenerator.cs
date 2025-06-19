@@ -198,7 +198,8 @@ public class LectureGenerator
                 Requirements = requirements,
                 CourseId = course.Id,
                 Course = course,
-                Year = lectureYear // Присваиваем сгенерированный год
+                Year = lectureYear, // Присваиваем сгенерированный год
+                FullText = GenerateLectureFullText(lectureName) // Генерируем полный текст лекции
             };
             lectures.Add(newLecture);
         }
@@ -245,7 +246,6 @@ public class LectureGenerator
         lectureName = lectureName.Replace("  ", " ");
         bool requirements = _faker.Random.Bool(0.25f);
 
-
         // *** Генерируем случайный год из диапазона ***
         int lectureYear = 0; // Год по умолчанию
         if (startYear > 0)
@@ -260,9 +260,43 @@ public class LectureGenerator
             Requirements = requirements,
             CourseId = selectedCourse.Id,
             // Course = selectedCourse, // Можно раскомментировать, если нужно
-            Year = lectureYear // Присваиваем сгенерированный год
+            Year = lectureYear, // Присваиваем сгенерированный год
+            FullText = GenerateLectureFullText(lectureName) // Генерируем полный текст лекции
         };
 
         return newLecture;
+    }
+
+    // Генерация полного текста лекции (аналогично MaterialElasticGenerator)
+    private string GenerateLectureFullText(string lectureName)
+    {
+        var contentBuilder = new System.Text.StringBuilder();
+        contentBuilder.AppendLine($"# {lectureName}");
+        contentBuilder.AppendLine($"*{_faker.Lorem.Sentence(6, 10)}*");
+        contentBuilder.AppendLine();
+        int paragraphCount = _faker.Random.Int(5, 12);
+        contentBuilder.AppendLine(_faker.Lorem.Paragraphs(paragraphCount, separator: "\n\n"));
+        contentBuilder.AppendLine();
+        if (_faker.Random.Bool(0.5f))
+        {
+            contentBuilder.AppendLine("Дополнительные факты:");
+            int facts = _faker.Random.Int(2, 5);
+            for (int i = 0; i < facts; i++)
+            {
+                contentBuilder.AppendLine($"- {_faker.Rant.Review()}");
+            }
+            contentBuilder.AppendLine();
+        }
+        if (_faker.Random.Bool(0.3f))
+        {
+            contentBuilder.AppendLine("```");
+            contentBuilder.AppendLine(_faker.Hacker.Verb() + " " + _faker.Hacker.Noun() + "();");
+            contentBuilder.AppendLine($"// {_faker.Hacker.Phrase()}");
+            contentBuilder.AppendLine("```");
+            contentBuilder.AppendLine();
+        }
+        contentBuilder.AppendLine("---");
+        contentBuilder.AppendLine($"*Источник: {_faker.Internet.DomainName()} ({_faker.Date.Recent().ToShortDateString()})*");
+        return contentBuilder.ToString();
     }
 }

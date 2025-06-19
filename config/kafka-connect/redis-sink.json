@@ -1,0 +1,25 @@
+{
+    "name": "redis-sink",
+    "config": {
+        "connector.class": "com.datamountaineer.streamreactor.connect.redis.sink.RedisSinkConnector",
+        "tasks.max": "1",
+        "topics": "postgres.public.Students",
+        "connect.redis.host": "redis",
+        "connect.redis.port": "6379",
+        "connect.redis.timeout": "5000",
+        "connect.redis.db": "0",
+        "connect.redis.kcql": "INSERT INTO student_ SELECT * FROM postgres.public.students PK id",
+        "connect.redis.sink.kcql.prefix.keys": "false",
+        "connect.redis.sink.expire.keys": "false",
+        "connect.redis.sink.expire.keys.time.sec": "0",
+        "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+        "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+        "key.converter.schemas.enable": "true",
+        "value.converter.schemas.enable": "true",
+        "behavior.on.error": "log",
+        "transforms": "unwrap",
+        "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+        "transforms.unwrap.drop.tombstones": "false",
+        "transforms.unwrap.delete.handling.mode": "rewrite"
+    }
+} 

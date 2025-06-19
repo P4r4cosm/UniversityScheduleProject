@@ -38,7 +38,7 @@ services:
       - ./logs/neo4j:/logs
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch-wolfi:8.17.3
+    image: elasticsearch:8.17.3
     container_name: elasticsearch
     restart: unless-stopped
     environment:
@@ -62,15 +62,23 @@ services:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=admin
       - POSTGRES_DB=mydb
+      # Настройки для CDC (Change Data Capture)
+      - POSTGRES_INITDB_ARGS=--data-checksums
     ports:
       - "5433:5432"
+    command: >
+      postgres 
+      -c wal_level=logical 
+      -c max_wal_senders=10 
+      -c max_replication_slots=10
+      -c wal_sender_timeout=0
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
       - ./logs/postgres:/var/log/postgresql
       - ./postgres-initdb:/docker-entrypoint-initdb.d
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:8.17.3
+    image: kibana:8.17.3
     container_name: kibana
     restart: unless-stopped
     ports:
@@ -99,8 +107,6 @@ services:
       - ASPNETCORE_URLS=http://+:8080;
     depends_on:
       - postgres # Зависит от postgres
-
-
 
   university-schedule-generator:
     build:
@@ -234,7 +240,6 @@ services:
       - neo4j
       - elasticsearch
 
-
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.1 # Используйте актуальные версии
     container_name: zookeeper
@@ -247,7 +252,8 @@ services:
     volumes:
       - ./data/zookeeper/data:/data
       - ./data/zookeeper/datalog:/datalog
- # --- Kafka Broker ---
+
+  # --- Kafka Broker ---
   broker:
     image: confluentinc/cp-kafka:7.6.1
     container_name: broker
@@ -269,9 +275,12 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081 # Ссылка на Schema Registry
-      # KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" # Опционально, для Debezium лучше, чтобы он сам создавал
+      # Добавляем явное указание на создание топиков
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     volumes:
       - ./data/kafka/data:/var/lib/kafka/data
+    restart: unless-stopped  # Добавляем автоматический перезапуск
+
   schema-registry:
     image: confluentinc/cp-schema-registry:7.6.1
     container_name: schema-registry
@@ -284,20 +293,24 @@ services:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'broker:9092'
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    restart: unless-stopped  # Добавляем автоматический перезапуск
 
   # --- Kafka Connect ---
   kafka-connect:
-    image: confluentinc/cp-kafka-connect-base:7.6.1 # Используем -base для добавления своих коннекторов
+    build:
+      context: ./kafka-connect
+      dockerfile: Dockerfile
     container_name: kafka-connect
     hostname: kafka-connect
     depends_on:
       - broker
       - schema-registry
+      - postgres
     ports:
       - "8083:8083"
     environment:
       CONNECT_BOOTSTRAP_SERVERS: 'broker:9092'
-      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect # или localhost если будете обращаться с хоста
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
       CONNECT_REST_PORT: 8083
       CONNECT_GROUP_ID: compose-connect-group
       CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
@@ -306,24 +319,33 @@ services:
       CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
       CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
-      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter # или AvroConverter
-      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter # или AvroConverter
+      # Используем JsonConverter для совместимости
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "true"
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "true"
+      # Схема-регистр для Avro (опционально)
       # CONNECT_KEY_CONVERTER: io.confluent.connect.avro.AvroConverter
       # CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
       # CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
       # CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
       CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
-      CONNECT_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      # Путь к плагинам коннектора
-      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components,/connectors"
-      # CLASSPATH: /usr/share/java/kafka-connect-common/kafka-connect-common-3.2.1.jar # Может потребоваться для отладки
+      # Для отладки
+      CONNECT_LOG4J_ROOT_LOGLEVEL: INFO
+      CONNECT_LOG4J_LOGGERS: org.apache.kafka.connect.runtime.rest=WARN,org.reflections=ERROR
+      # Путь к плагинам
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+      # Добавляем явное указание на политику переопределения
+      CONNECT_CONNECTOR_CLIENT_CONFIG_OVERRIDE_POLICY: All
     volumes:
-      # Том для коннектора Debezium
-      - ./kafka-connect-plugins/debezium-connector-postgres:/connectors/debezium-connector-postgres
-      # Том для других коннекторов, если понадобятся
-      # - ./kafka-connect-plugins/другой-коннектор:/connectors/другой-коннектор
-   # --- Control Center (Опционально, можно заменить на Kafka UI) ---
+      # Том для логов
+      - ./logs/kafka-connect:/var/log/kafka-connect
+      # Том для конфигураций (опционально)
+      - ./config/kafka-connect:/etc/kafka-connect/custom-configs
+    restart: unless-stopped  # Добавляем автоматический перезапуск
+
+  # --- Control Center ---
   control-center:
     image: confluentinc/cp-enterprise-control-center:7.6.1
     container_name: control-center
@@ -342,6 +364,27 @@ services:
       CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
       CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
       CONFLUENT_METRICS_TOPIC_REPLICATION: 1
-      PORT: 9021 # Для CCloud это не нужно, но для локального развертывания может быть
+      PORT: 9021
     volumes:
       - ./data/control-center:/var/lib/confluent-control-center
+
+  # Сервис для автоматического запуска коннекторов
+  connector-setup:
+    image: curlimages/curl:latest
+    container_name: connector-setup
+    depends_on:
+      - kafka-connect
+      - postgres
+      - redis
+      - elasticsearch
+    volumes:
+      - ./config/kafka-connect:/config
+    restart: on-failure
+    entrypoint: ["/bin/sh", "-c"]
+    command: |
+      "
+      echo \"Waiting for services to start...\"
+      # Просто держим контейнер запущенным, но не выполняем настройку коннекторов
+      # Настройка будет выполняться через внешние скрипты setup-connectors.bat или setup-connectors.ps1
+      sleep infinity
+      "
