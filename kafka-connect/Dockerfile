@@ -17,6 +17,9 @@ RUN mkdir -p /tmp/kafka-connect-redis && \
     tar -xvf kafka-connect-redis-3.0.1-2.5.0-all.tar.gz -C /usr/share/java/ && \
     rm -rf /tmp/kafka-connect-redis
 
+# Установка плагина для Neo4j
+RUN confluent-hub install --no-prompt neo4j/kafka-connect-neo4j:5.1.12
+
 # Рабочая директория
 WORKDIR /usr/share/java
 
