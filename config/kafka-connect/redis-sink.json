@@ -8,7 +8,7 @@
         "connect.redis.port": "6379",
         "connect.redis.timeout": "5000",
         "connect.redis.db": "0",
-        "connect.redis.kcql": "INSERT INTO student_ SELECT * FROM postgres.public.students PK id",
+        "connect.redis.kcql": "INSERT INTO student_ SELECT * FROM postgres.public.Students PK Id",
         "connect.redis.sink.kcql.prefix.keys": "false",
         "connect.redis.sink.expire.keys": "false",
         "connect.redis.sink.expire.keys.time.sec": "0",
@@ -17,9 +17,17 @@
         "key.converter.schemas.enable": "true",
         "value.converter.schemas.enable": "true",
         "behavior.on.error": "log",
-        "transforms": "unwrap",
+        "transforms": "unwrap,convertDate",
         "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
         "transforms.unwrap.drop.tombstones": "false",
-        "transforms.unwrap.delete.handling.mode": "rewrite"
+        "transforms.unwrap.delete.handling.mode": "rewrite",
+        "transforms.convertDate.type": "org.apache.kafka.connect.transforms.TimestampConverter$Value",
+        "transforms.convertDate.field": "DateOfRecipient",
+        "transforms.convertDate.target.type": "string",
+        "transforms.convertDate.format": "yyyy-MM-dd",
+        "transforms.convertDate.unix.precision": "microseconds"
     }
-} 
+}
+
+
+
