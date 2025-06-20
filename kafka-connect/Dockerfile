@@ -1,11 +1,18 @@
 FROM confluentinc/cp-kafka-connect-base:7.6.1
 
 # Установка плагина Debezium для PostgreSQL
-RUN mkdir -p /tmp/debezium-connector && \
-    cd /tmp/debezium-connector && \
+#RUN mkdir -p /tmp/debezium-connector && \
+#    cd /tmp/debezium-connector && \
+#    curl -LO https://repo1.maven.org/maven2/io/debezium/debezium-connector-postgres/2.5.0.Final/debezium-connector-postgres-2.5.0.Final-plugin.tar.gz && \
+#    tar -xvf debezium-connector-postgres-2.5.0.Final-plugin.tar.gz -C /usr/share/java/ && \
+#    rm -rf /tmp/debezium-connector
+
+# Установка плагина Debezium для PostgreSQL со всеми зависимостями
+RUN mkdir -p /usr/share/java/debezium-connector-postgres && \
+    cd /usr/share/java/debezium-connector-postgres && \
     curl -LO https://repo1.maven.org/maven2/io/debezium/debezium-connector-postgres/2.5.0.Final/debezium-connector-postgres-2.5.0.Final-plugin.tar.gz && \
-    tar -xvf debezium-connector-postgres-2.5.0.Final-plugin.tar.gz -C /usr/share/java/ && \
-    rm -rf /tmp/debezium-connector
+    tar -xvf debezium-connector-postgres-2.5.0.Final-plugin.tar.gz && \
+    rm debezium-connector-postgres-2.5.0.Final-plugin.tar.gz
 
 # Установка плагина для Elasticsearch
 RUN confluent-hub install --no-prompt confluentinc/kafka-connect-elasticsearch:14.0.12

@@ -33,17 +33,17 @@ services.AddSwaggerGen(c =>
 
 //добавляем базы
 services.AddPostgres(builder.Configuration);
-//services.AddNeo4j(builder.Configuration);
-//services.AddRedis(builder.Configuration);
-//services.AddMongoDb(builder.Configuration);
-//services.AddElastic(builder.Configuration);
+services.AddNeo4j(builder.Configuration);
+services.AddRedis(builder.Configuration);
+services.AddMongoDb(builder.Configuration);
+services.AddElastic(builder.Configuration);
 //создаём сервис для генерации мусора
 services.AddScoped<GeneratorService>();
 services.AddScoped<IDataSaver<GeneratedData>, PostgresDataSaver>();
-// services.AddScoped<IDataSaver<GeneratedData>, Neo4jDataSaver>();
-// services.AddScoped<IDataSaver<GeneratedData>, MongoDataSaver>();
-// services.AddScoped<IDataSaver<GeneratedData>, RedisDataSaver>();
-// services.AddScoped<IDataSaver<GeneratedData>, ElasticDataSaver>();
+services.AddScoped<IDataSaver<GeneratedData>, Neo4jDataSaver>();
+services.AddScoped<IDataSaver<GeneratedData>, MongoDataSaver>();
+services.AddScoped<IDataSaver<GeneratedData>, RedisDataSaver>();
+services.AddScoped<IDataSaver<GeneratedData>, ElasticDataSaver>();
 //сервис сохранения мусора
 services.AddScoped<DataSaverService>();
 

@@ -49,16 +49,20 @@ function Register-Connector {
     
     # Регистрируем коннектор
     try {
-        $config = Get-Content -Path $ConfigFile -Raw
-        $response = Invoke-WebRequest -Uri "http://localhost:8083/connectors" -Method Post -Body $config -ContentType "application/json" -UseBasicParsing
-        if ($response.StatusCode -eq 201 -or $response.StatusCode -eq 200) {
-            Write-Host "Connector ${ConnectorName} started successfully." -ForegroundColor Green
-        } else {
-            Write-Host "Failed to start connector ${ConnectorName}. Response code: $($response.StatusCode)" -ForegroundColor Red
-        }
+        $configObject = Get-Content -Path $ConfigFile -Encoding UTF8 -Raw | ConvertFrom-Json
+        Invoke-RestMethod -Uri "http://localhost:8083/connectors" -Method Post -Body $configObject -ContentType "application/json"
+        Write-Host "Connector ${ConnectorName} started successfully." -ForegroundColor Green
     } catch {
-        $errorMessage = $_.Exception.Message
-        Write-Host "Error starting connector ${ConnectorName}: ${errorMessage}" -ForegroundColor Red
+        Write-Host "Error starting connector ${ConnectorName}." -ForegroundColor Red
+        Write-Host "Full exception details: $($_.ToString())" -ForegroundColor Red
+        if ($_.Exception.Response) {
+            $errorStream = $_.Exception.Response.GetResponseStream()
+            $reader = New-Object System.IO.StreamReader($errorStream)
+            $errorBody = $reader.ReadToEnd()
+            Write-Host "Response Body from server: ${errorBody}" -ForegroundColor Red
+        } else {
+            Write-Host "No response body was returned from the server." -ForegroundColor Red
+        }
     }
 }
 
@@ -66,7 +70,7 @@ function Register-Connector {
 Register-Connector -ConnectorName "postgres-source" -ConfigFile ".\config\kafka-connect\postgres-source.json"
 Register-Connector -ConnectorName "elasticsearch-sink" -ConfigFile ".\config\kafka-connect\elasticsearch-sink.json"
 Register-Connector -ConnectorName "redis-sink" -ConfigFile ".\config\kafka-connect\redis-sink.json"
-Register-Connector -ConnectorName "neo4j-sink" -ConfigFile ".\config\kafka-connect\neo4j-sink.json"
+#Register-Connector -ConnectorName "neo4j-sink" -ConfigFile ".\config\kafka-connect\neo4j-sink.json"
 
 # Получаем список активных коннекторов
 Write-Host "Listing active connectors:" -ForegroundColor Cyan
