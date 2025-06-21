@@ -55,7 +55,7 @@ services:
       - ./logs/elasticsearch:/usr/share/elasticsearch/logs
 
   postgres:
-    image: debezium/postgres:16-alpine
+    image: postgres:latest
     container_name: postgres
     restart: unless-stopped
     environment:
@@ -67,15 +67,19 @@ services:
     ports:
       - "5433:5432"
     command: >
-      postgres 
-      -c wal_level=logical 
-      -c max_wal_senders=10 
-      -c max_replication_slots=10
-      -c wal_sender_timeout=0
+      bash -c "
+        apt-get update && apt-get install -y postgresql-17-wal2json;
+        exec docker-entrypoint.sh postgres -c wal_level=logical -c max_replication_slots=10 -c max_wal_senders=10 -c shared_preload_libraries='wal2json'
+      "
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
       - ./logs/postgres:/var/log/postgresql
       - ./postgres-initdb:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d mydb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   kibana:
     image: kibana:8.17.3
@@ -135,7 +139,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080 # Lab1 слушает HTTP на 8080 внутри контейнера
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
       # - mongodb
       # - redis
       # - neo4j
@@ -267,6 +272,7 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://broker:9092,PLAINTEXT_HOST://0.0.0.0:29092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
@@ -322,13 +328,8 @@ services:
       # Используем JsonConverter для совместимости
       CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "true"
-      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "true"
-      # Схема-регистр для Avro (опционально)
-      # CONNECT_KEY_CONVERTER: io.confluent.connect.avro.AvroConverter
-      # CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
-      # CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
-      # CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
+      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
       CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       # Для отладки
