@@ -14,4 +14,5 @@ public class Lecture
     public int Year {get; set;}
     public int CourseId {get; set;}
     public Course Course {get; set;}
+    public string FullText { get; set; } // Полный текст лекции для хранения в PostgreSQL
 }

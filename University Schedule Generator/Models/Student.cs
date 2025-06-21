@@ -9,7 +9,7 @@ public class Student
     
     [Required] public string FullName {get; set;}
     
-    [Column(TypeName = "date")] // Указываем тип DATE
+    [Column(TypeName = "timestamp")] // Указываем тип DATE
     public DateTime DateOfRecipient { get; set; }
     
     public int GroupId { get; set; }

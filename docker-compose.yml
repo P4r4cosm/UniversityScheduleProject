@@ -112,8 +112,6 @@ services:
     depends_on:
       - postgres # Зависит от postgres
 
-
-
   university-schedule-generator:
     build:
       context: .
@@ -247,7 +245,6 @@ services:
       - neo4j
       - elasticsearch
 
-
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.1 # Используйте актуальные версии
     container_name: zookeeper
@@ -260,7 +257,8 @@ services:
     volumes:
       - ./data/zookeeper/data:/data
       - ./data/zookeeper/datalog:/datalog
- # --- Kafka Broker ---
+
+  # --- Kafka Broker ---
   broker:
     image: confluentinc/cp-kafka:7.6.1
     container_name: broker
@@ -283,9 +281,12 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081 # Ссылка на Schema Registry
-      # KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" # Опционально, для Debezium лучше, чтобы он сам создавал
+      # Добавляем явное указание на создание топиков
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     volumes:
       - ./data/kafka/data:/var/lib/kafka/data
+    restart: unless-stopped  # Добавляем автоматический перезапуск
+
   schema-registry:
     image: confluentinc/cp-schema-registry:7.6.1
     container_name: schema-registry
@@ -298,6 +299,7 @@ services:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'broker:9092'
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    restart: unless-stopped  # Добавляем автоматический перезапуск
 
   # --- Kafka Connect ---
   kafka-connect:
@@ -335,14 +337,15 @@ services:
       CONNECT_LOG4J_LOGGERS: org.apache.kafka.connect.runtime.rest=WARN,org.reflections=ERROR
       # Путь к плагинам
       CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
-      # Для автоматического создания коннекторов (опционально)
-      # CONNECT_CONNECTOR_CLIENT_CONFIG_OVERRIDE_POLICY: All
+      # Добавляем явное указание на политику переопределения
+      CONNECT_CONNECTOR_CLIENT_CONFIG_OVERRIDE_POLICY: All
     volumes:
       # Том для логов
       - ./logs/kafka-connect:/var/log/kafka-connect
       # Том для конфигураций (опционально)
       - ./config/kafka-connect:/etc/kafka-connect/custom-configs
-      
+    restart: unless-stopped  # Добавляем автоматический перезапуск
+
   # --- Control Center ---
   control-center:
     image: confluentinc/cp-enterprise-control-center:7.6.1
@@ -365,3 +368,24 @@ services:
       PORT: 9021
     volumes:
       - ./data/control-center:/var/lib/confluent-control-center
+
+  # Сервис для автоматического запуска коннекторов
+  connector-setup:
+    image: curlimages/curl:latest
+    container_name: connector-setup
+    depends_on:
+      - kafka-connect
+      - postgres
+      - redis
+      - elasticsearch
+    volumes:
+      - ./config/kafka-connect:/config
+    restart: on-failure
+    entrypoint: ["/bin/sh", "-c"]
+    command: |
+      "
+      echo \"Waiting for services to start...\"
+      # Просто держим контейнер запущенным, но не выполняем настройку коннекторов
+      # Настройка будет выполняться через внешние скрипты setup-connectors.bat или setup-connectors.ps1
+      sleep infinity
+      "
