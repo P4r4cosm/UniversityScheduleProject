@@ -16,6 +16,9 @@
         "publication.autocreate.mode": "filtered",
         "publication.name": "dbz_publication",
         "slot.name": "dbz_slot",
+        "slot.drop.on.stop": "false",
+        "snapshot.mode": "always",
+        "tombstones.on.delete": "false",
         "key.converter": "org.apache.kafka.connect.json.JsonConverter",
         "key.converter.schemas.enable": "false",
         "value.converter": "org.apache.kafka.connect.json.JsonConverter",
@@ -23,5 +26,8 @@
         "transforms": "unwrap",
         "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
         "tombstones.on.delete": "false"
+        "transforms.unwrap.drop.tombstones": "false",
+        "transforms.unwrap.delete.handling.mode": "rewrite",
+        "transforms.unwrap.add.fields": "op,table,lsn,source.ts_ms"
     }
 } 

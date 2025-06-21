@@ -3,7 +3,7 @@
     "config": {
         "connector.class": "com.datamountaineer.streamreactor.connect.redis.sink.RedisSinkConnector",
         "tasks.max": "1",
-        "topics": "postgres.public.students",
+        "topics": "postgres.public.Students",
         "connect.redis.host": "redis",
         "connect.redis.port": "6379",
         "connect.redis.timeout": "5000",
